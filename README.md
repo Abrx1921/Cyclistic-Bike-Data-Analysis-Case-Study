@@ -98,7 +98,7 @@ format your data to make it easier to perform calculations, combine data from mu
 
 :microscope: Analyze the Data to Discover Insights
 
-File: [Data Analysis](Cyclistic_Data_ Analysis_Script.R)
+File: [Data Analysis](Cyclistic_Data_Analysis_Script.R)
 
 ## 5. Share
 
