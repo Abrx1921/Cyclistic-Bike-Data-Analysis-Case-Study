@@ -81,11 +81,11 @@ Clean data is the best data. You will need to clean up data to get rid of any er
 
 :dna: **Merge Data Sets for Cleaning:**
 
-File: Cyclistic_Data_Merge_Script 
+File: [Data Merging](Cyclistic_Data_Merging_Script.R)
 
 :soap: **Cleaning Dataset for Analysis:**
 
-File: Cyclistic_Data_Cleaning_Script
+File: [Data Cleaning](Cyclistic_Data_Cleaning_Script.R)
 
 :floppy_disk: Export Cyclistic Cleaned Bike Data for Analysis
 
@@ -98,7 +98,7 @@ format your data to make it easier to perform calculations, combine data from mu
 
 :microscope: Analyze the Data to Discover Insights
 
-File: Cyclistic_Data_Analysis_Script
+File: [Data Analysis](Cyclistic_Data_ Analysis_Script.R)
 
 ## 5. Share
 
@@ -106,7 +106,7 @@ File: Cyclistic_Data_Analysis_Script
 
 File: Cyclistic_BikeData_RMD
 
-:bar_chart: [Cyclistic Report](file:///C:/Users/abrah/OneDrive/Documents/Data%20Projects/Divvy_Trips_2019_to_2020/Final%20Cyclistic%20Dataframe/Cyclistic_BikeData_RMD.html) 
+:bar_chart: [Data Analysis Report](https://rpubs.com/Abrx1921/1191923) 
 
 ## 6. Act
 
