@@ -104,9 +104,11 @@ File: [Data Analysis](Cyclistic_Data_Analysis_Script.R)
 
 🛠️ Tool: R Markdown (Packages: Tidyverse, Lubridate, knitr, DT, gridExtra) 
 
-File: Cyclistic_BikeData_RMD
+File: [R Markdown](Cyclistic_BikeData_RMD.RMD)
 
 :bar_chart: [Data Analysis Report](https://rpubs.com/Abrx1921/1191923) 
+
+<img src="https://github.com/Abrx1921/Cyclistic-Bike-Data-Analysis-Case-Study/assets/167746532/e8588db9-9cf3-443c-9da9-402add7bd728" width="350" height="450">
 
 ## 6. Act
 
