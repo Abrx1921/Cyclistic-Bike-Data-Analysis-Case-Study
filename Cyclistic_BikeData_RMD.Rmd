@@ -1,0 +1,481 @@
+---
+title: "Cyclistic Bike Data Analysis Report"
+author: "Abraham Saenz Sigala"
+date: "May 27, 2024"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    
+---
+
+![](C:/Users/abrah/OneDrive/Documents/Data Projects/Divvy_Trips_2019_to_2020/Final Cyclistic Dataframe/Markdown Files/Bike_Image_1.jpeg)
+
+# **Business Task**
+
+**Design a marketing strategy from insights gained in order to convert casual riders to annual members.**
+
+### Dataset
+
+The data set used ranges from **January 1, 2019 (Q1)** to **April 2, 2020 (Q1)**. It contains a combination of **5** CSVs, totaling **15** columns and **4.2** million rows. 
+
+### Limitations
+
+Our data lacks identification to differentiate between frequent casual users and tourists, potentially affecting marketing strategies and user behavior patterns. Additionally, null values and inconsistent entries were present but had negligible impact on our analysis post data cleaning. Future data collection should have consistent naming conventions implemented to facilitate and ensure effective insights and company success. 
+
+# **Analysis**
+
+```{r echo = FALSE, eval = TRUE, include = FALSE, warning = FALSE, message = FALSE} 
+# Set WD, load packages, and CSV file
+setwd("C:/Users/abrah/OneDrive/Documents/Data Projects/Divvy_Trips_2019_to_2020/Final Cyclistic Dataframe")
+library(tidyverse)
+library(knitr)
+library(DT)
+library(gridExtra)
+library(lubridate)
+bikedata <- read.csv("Cyclistic_Clean_Bikedata.csv")
+```
+
+```{r echo = FALSE, eval = FALSE, include = FALSE, warning = FALSE, message = FALSE}
+#Examine the data
+View(bikedata)
+str(bikedata)
+colnames(bikedata)
+summary(bikedata)
+head(bikedata)
+```
+
+### 1. Insight
+
+#### Total Rides 
+
+```{r echo = TRUE, include = TRUE}
+# Code: Total rides
+total_rides <- bikedata %>% 
+  summarize(total_rides = n()) 
+```
+
+```{r echo = FALSE, include = TRUE}
+kable(total_rides)
+```
+
+#### Total Rides by User Type
+
+```{r echo = TRUE, include = TRUE}
+# Code: Total rides by user type
+usertype_rides <- bikedata %>% 
+  count(usertype)
+```
+
+```{r echo = FALSE, include = TRUE}
+usertype_rides <- usertype_rides %>% 
+  rename(user_rides = n)
+
+kable(usertype_rides)
+```
+
+Our data shows that users have used our service for a total of **4,202,846** rides. When we separate this by user types, we see **Members** make up of **78.15%** of rides while **Casual** users only make up **21.85%** of the total. 
+
+```{r echo = FALSE, include = TRUE, fig.align='center'}
+# Visualize the number of rides by user type (Pie Chart)
+usertype_rides_plot <- ggplot(usertype_rides, aes(x = "", y = user_rides, fill = usertype)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  geom_text(aes(label = user_rides), 
+            position = position_stack(vjust = 0.5), size = 4, color = "black") +
+  coord_polar(theta = "y") +
+  theme_void() +
+  scale_fill_manual(values = c("CASUAL" = "gray", "MEMBER" = "lightblue")) +
+  labs(fill = "Usertype") +
+  theme(legend.title = element_text(face = "bold"))
+
+# Get the percentage
+percentage_rides <- merge(total_rides, usertype_rides)
+percentage_rides$percentage <- round((percentage_rides$user_rides / percentage_rides$total_rides) * 100, 2)
+
+# Visualize the percentage by user type (Pie Chart)
+percentage_rides_plot <- ggplot(percentage_rides, aes(x = "", y = percentage, fill = usertype)) +
+  geom_bar(stat = "identity", width = 1, color = "white", show.legend = FALSE) +
+  geom_text(aes(label = paste0(percentage, "%")), 
+            position = position_stack(vjust = 0.5), size = 4, color = "black") +
+  coord_polar(theta = "y") +
+  theme_void() +
+  scale_fill_manual(values = c("CASUAL" = "gray", "MEMBER" = "lightblue")) +
+  labs(fill = "Usertype") +
+  theme(legend.title = element_text(face = "bold"))
+
+# Display pie charts side by side with adjusted size for the second plot
+grid.arrange(usertype_rides_plot, percentage_rides_plot, ncol = 2, widths = c(2, 1.5))
+
+```
+
+### 2. Insight
+
+#### Total Average/Median Trip Duration in Minutes
+
+```{r echo = TRUE, include = TRUE}
+# Code: Trip Duration Average/Median 
+avg_median <- bikedata %>% 
+  summarise(average = round(mean(tripduration), 2), median = median(tripduration)) 
+```
+
+```{r echo = FALSE, include = TRUE}
+kable(avg_median)
+```
+
+```{r echo = FALSE, include = TRUE}
+# Code: Day order
+day_order <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+bikedata$day_of_week <- factor(bikedata$day_of_week, levels = day_order)
+```
+
+#### Average/Median Trip Duration by Day of the Week
+
+```{r echo = TRUE, include = TRUE}
+# Code: Average/Median Trip Duration by Day of the Week
+avg_med_tripduration <- bikedata %>% 
+  group_by(day_of_week) %>% 
+  summarize(average = round(mean(tripduration), 2), median = round(median(tripduration), 2))
+```
+
+```{r echo = FALSE, include = TRUE}
+kable(avg_med_tripduration)
+```
+
+```{r fig.align='center', echo = FALSE, include = TRUE}
+# Visualize Average Trip duration by Day of the Week
+avg_med_tripduration %>% 
+  ggplot() +
+  geom_col(aes(x = day_of_week, y = average, fill = day_of_week), show.legend = FALSE) +
+  geom_text(aes(x = day_of_week, y = average, label = average), 
+    position = position_stack(vjust = .75), size = 3.5, color = "black") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(y = "Average Trip Duration (min.)", x = "") + 
+  theme_minimal() +
+  theme(axis.title.y = element_text(face = "bold")) 
+
+# Visualize Median Trip duration by Day of the Week
+avg_med_tripduration %>% 
+  ggplot() +
+  geom_col(aes(x = day_of_week, y = median, fill = day_of_week), show.legend = FALSE) +
+  geom_text(aes(x = day_of_week, y = median, label = median), 
+    position = position_stack(vjust = .75), size = 3.5, color = "black") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(y = "Median Trip Duration (min.)", x = "") + 
+  theme_minimal() +
+  theme(axis.title.y = element_text(face = "bold")) 
+```
+
+#### Average/Median Trip Duration by User Type
+
+```{r echo=TRUE, include=TRUE}
+# Code: Average/Median Trip Duration by User Type
+usertype_avg_med <- bikedata %>% 
+  group_by(usertype) %>% 
+  summarise(average = round(mean(tripduration), 2), median = median(tripduration))  
+```
+
+```{r echo = FALSE, include = TRUE}
+kable(usertype_avg_med)
+```
+
+```{r echo = FALSE, include = TRUE, fig.width=5, fig.height=5, fig.align='center'}
+# Visualization User Type Avg Trip Duration (Bar Graph)
+usertype_avg <- 
+  ggplot(usertype_avg_med) + 
+  geom_col(aes(x = usertype, y = average, fill = usertype), show.legend = FALSE) +
+  geom_text(aes(x = usertype, y = average, label = average), 
+    position = position_stack(vjust = .75), size = 4, color = "black") +
+  scale_fill_manual(values = c("CASUAL" = "gray", "MEMBER" = "lightblue")) +
+  labs(y = "Average Trip Duration (min.)", x = "") + 
+  theme_minimal() 
+
+# Visualization User Type Median Trip Duration (Bar Graph)
+usertype_med <-
+  ggplot(usertype_avg_med) + 
+  geom_col(aes(x = usertype, y = median, fill = usertype), show.legend = FALSE) +
+  geom_text(aes(x = usertype, y = median, label = median),
+            position = position_stack(vjust = .75), size = 4, color = "black") +
+  scale_fill_manual(values = c("CASUAL" = "gray", "MEMBER" = "lightblue")) +
+  labs(y = "Median Trip Duration (min.)", x = "") + 
+  theme_minimal() 
+
+# Display bar graphs side by side
+grid.arrange(usertype_avg, usertype_med, ncol = 2)
+```
+
+#### Average Trip Duration by User Type and Day of the Week
+
+```{r echo = FALSE, include = TRUE}
+# Code: Day order
+day_order <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+bikedata$day_of_week <- factor(bikedata$day_of_week, levels = day_order)
+```
+
+```{r echo = TRUE, include = TRUE}
+# Code: Average Trip Duration by User Type & Day of the Week
+avg_user_weekday <- bikedata %>%
+  filter(usertype %in% c("MEMBER", "CASUAL")) %>%
+  group_by(day_of_week, usertype) %>%
+  summarize(average = round(mean(tripduration), 2), .groups = 'drop') %>% 
+  pivot_wider(names_from = c("usertype"), values_from = "average")
+```
+
+```{r echo = FALSE, include = TRUE}
+kable(avg_user_weekday)
+```
+
+Our data reveals that **Casual** users have a significantly longer average ride time of **40.77** minutes, compared to Members who ride for an average of **12.95** minutes. Additionally, both **Casual** users and **Members* exhibit the highest average ride durations on weekends. 
+
+```{r fig.align='center', echo = FALSE, include = TRUE}
+# Convert from wider to longer for plotting
+avg_user_weekday_long <- avg_user_weekday %>% 
+  pivot_longer(cols = c(MEMBER, CASUAL), 
+              names_to = "usertype", 
+              values_to = "average")
+
+# Visualize Average Trip duration by Day of the Week
+avg_user_weekday_long %>% 
+  ggplot(aes(x = day_of_week, y = average, fill = usertype)) +
+  geom_col(position = position_dodge(width = 0.9)) +
+  geom_text(aes(label = average), 
+            position = position_dodge(width = 0.9), vjust = -0.3, size = 3, color = "black") +
+  scale_fill_manual(values = c("CASUAL" = "gray", "MEMBER" = "lightblue")) +
+  labs(y = "Average Trip Duration (min.)", x = "Day of the Week", fill = "Usertype") + 
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+### 3. Insight
+
+#### Average Age by User Type
+
+```{r echo = FALSE, include = TRUE}
+dataset_year <- 2020 # Actual user age relative to the year 2020
+```
+
+```{r echo = TRUE, include = TRUE}
+# Code: Average Age by User Type
+average_age <- bikedata %>% 
+  filter(birthyear > 1950 & birthyear < 2005) %>% # Filtering for people 15 - 70 years old
+  mutate(age = dataset_year - birthyear) %>% 
+  group_by(usertype) %>%
+  summarize(average_age = round(mean(age, na.rm = TRUE), 2))
+```
+
+```{r echo = FALSE, include = TRUE}
+kable(average_age)
+```
+
+#### Most Rides by Age/User Type
+
+```{r echo = TRUE, include = TRUE}
+# Code: Top 5 Most Rides by Age and User type
+maxrides_age <- bikedata %>%
+  filter(birthyear > 1950 & birthyear < 2005) %>% # Filtering for ages 15-70 years old
+  mutate(age = dataset_year - birthyear) %>% # Calculate age
+  group_by(usertype, age) %>% # Group by usertype and age
+  summarize(num_of_rides = n(), .groups = 'drop') %>% 
+  group_by(usertype) %>% 
+  top_n(5, num_of_rides) %>% 
+  ungroup()
+```
+
+```{r echo = FALSE, include = TRUE}
+kable(maxrides_age)
+```
+
+Our data reveals that **Casual** users and **Members** total rides start to have a steady drop off at around ages  **35 - 40**. For **Casual** users we hit a peak of total rides from ages **25 - 28**. For **Members** our peak total rides range from ages **27 - 31**. NOTE: Its important to know that we are filtering for user 15 - 70 years old
+
+```{r echo = FALSE, include = FALSE}
+# Code: Total rides split by Age and User Type
+user_age <- bikedata %>% 
+  filter(birthyear > 1950 & birthyear < 2005) %>% 
+  mutate(age = dataset_year - birthyear) %>%
+  group_by(usertype, age) %>% # convert birth year to age
+  summarize(num_of_users = n()) %>% 
+  pivot_wider(names_from = usertype, values_from = num_of_users, values_fill = list(num_of_rides = 0))
+```
+
+```{r echo = FALSE, include = TRUE, warning=FALSE, fig.align='center'}
+# Visualize age of all users by user type (Line Plot)
+user_age %>% 
+  ggplot() + 
+  geom_line(mapping = aes(x = age, y = CASUAL, color = "Casual"), linewidth = 1) + 
+  geom_line(mapping = aes(x = age, y = MEMBER, color = "Member"), linewidth = 1) +
+  labs(x = "Age", y = "Total Rides", color = "User Type") +
+  scale_color_manual(values = c("Casual" = "gray", "Member" = "lightblue"), labels = c("Casual", "Member")) 
+```
+
+### 4. Insight
+
+#### Top 5 Most Popular Stations
+
+```{r echo = TRUE, include = TRUE, message=FALSE}
+# Code: Top 5 Most popular stations 
+max_rows <- 5 # Limit to 5
+
+top_5_stations <- bikedata %>% 
+  group_by(from_station_name) %>% 
+  summarize(total_rides = n()) %>% 
+  arrange(-total_rides) %>% 
+  top_n(max_rows)
+```
+
+```{r echo = FALSE, include = TRUE}
+kable(top_5_stations)
+```
+
+```{r echo = FALSE, include = FALSE}
+# Summarize the number of rides by user type for the top stations
+station_rides_by_user_type <- bikedata %>%
+  filter(from_station_name %in% top_5_stations$from_station_name) %>%
+  count(from_station_name, usertype, name = "num_of_rides") %>% 
+  arrange(desc(num_of_rides))
+```
+
+Our data reveals our most popular stations.   **Casual** users use Streeter Dr & Grand Ave the most **(54,612 rides)**. **Members** use Canal St & Adams St the most **(58,155 rides)**. 
+
+```{r echo = FALSE, include = TRUE, fig.align='center'}
+# Visualize Top 5 Most Popular Stations
+station_rides_by_user_type %>%
+  ggplot(aes(x = from_station_name, y = num_of_rides, fill = usertype)) +
+  geom_col(position = position_dodge(width = 0.9)) +
+  geom_text(aes(label = num_of_rides), 
+            position = position_dodge(width = 0.9), 
+            size = 3, color = "black", vjust = -0.5) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Station Names", y = "Number of Rides", fill = "User Type") +
+  scale_fill_manual(values = c("MEMBER" = "lightblue", "CASUAL" = "gray"))
+```
+
+#### Top 5 Most Popular Stations by User Type
+
+```{r echo = TRUE, include = TRUE, message=FALSE}
+# Code: Top 5 Most popular stations by usertype 
+max_rows <- 5 # Limit to 5
+
+popular_stations <- bikedata %>% 
+  filter(usertype %in% c("CASUAL", "MEMBER")) %>% 
+  group_by(usertype, from_station_name) %>% 
+  summarize(num_of_rides = n()) %>% 
+  arrange(usertype ,desc(num_of_rides)) %>% 
+  group_by(usertype) %>% 
+  top_n(max_rows)
+```
+
+```{r echo = FALSE, echo = FALSE}
+kable(popular_stations)
+```
+
+```{r echo = FALSE, echo = FALSE}
+# Reorder from_station_name based on num_of_rides
+popular_stations <- popular_stations %>%
+  mutate(from_station_name = factor(from_station_name, levels = unique(from_station_name[order(-num_of_rides)])))
+
+```
+
+In our plot pictured below, we uncover our top 5 most popular stations for **Casual** users and **Members**. This insight allows us to make the correct data driven decisions when it comes to creating marketing strategies. 
+
+```{r echo = FALSE, include = TRUE, fig.align='center'}
+# Visualize Top 5 Stations by User Type
+popular_stations %>% 
+  ggplot(aes(x = from_station_name, y = num_of_rides, fill = usertype)) +
+  geom_col() +
+  geom_text(aes(label = num_of_rides), position = position_dodge(width = 0.9), 
+            size = 3, vjust = -0.5, color = "black") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  scale_fill_manual(values = c("MEMBER" = "lightblue", "CASUAL" = "gray")) +
+  labs(x = "Station Names", y = "Number of Rides", fill = "Usertypes") 
+```
+
+### 5. Insight
+
+#### Total Rides per Month by User Type
+
+```{r echo = TRUE, include = TRUE, message=FALSE}
+# Code: Rides by Months for User Types
+monthlyusers <- bikedata %>% 
+  mutate(month = month(start_date, label = TRUE)) %>% 
+  filter(usertype %in% c("MEMBER", "CASUAL")) %>% 
+  group_by(usertype, month) %>% 
+  summarize(num_of_rides = n()) %>% 
+  pivot_wider(values_from = num_of_rides, names_from = usertype)
+```
+
+```{r echo = FALSE, include = TRUE}
+kable(monthlyusers)
+```
+
+Our data set reveals that **Summer** months are among the most popular for our users. Both **Members** and **Casual** users see a substantial rise in rides during these months! However, as the colder months approach, we observe a notable decline in ride activity. 
+
+```{r echo = FALSE, include = TRUE}
+# Pivot longer for plotting
+monthlyusers_long <- monthlyusers %>% 
+  pivot_longer(cols = c(MEMBER, CASUAL), names_to = "usertype", values_to = "num_of_rides")
+```
+
+```{r echo = FALSE, include = TRUE, fig.align='center'}
+# Visualize Rides by Month for User Types (Stacked Bar Graph)
+monthlyusers_long %>% 
+  ggplot(aes(x = month, y = num_of_rides, fill = usertype)) +
+  geom_col() +
+  coord_cartesian(ylim = c(1e+05,6e+05)) +
+  labs(x = "Month", y = "Number of Rides", fill = "Usertype") +
+  scale_fill_manual(values = c("MEMBER" = "lightblue", "CASUAL" = "gray"))
+```
+
+# **Actionable Insights**
+
+### 1. Conclusions 
+
+- Members constitute a substantial portion of our user base, comprising 78.15% of our total users. It's important to acknowledge that converting every Casual user may not be feasible, as our data set doesn't distinguish between locals who use our service without subscribing and tourists. However, we can implement marketing strategies to introduce our service to tourists. Additionally, there's a significant opportunity to convert a portion of our Casual users and attract new users through incentivized initiatives.
+
+- Average trip duration increases substantially during the weekends.
+
+- Casual users on average seem to have a longer trip duration compared to Members. 
+
+- Casual users ages 25 - 31 use our service the most. This upward trend begins at around age 20 and begins to drop off steadily at age 40. 
+
+- Top 5 Most popular stations for both Casuals and Members are responsible for more than 50,000 rides individually. 
+
+- Most popular stations for Casual users include: Streeter Dr & Grand Ave, Lake Shore Dr & Monroe St, Millennium Park, 	Michigan Ave & Oak St and Shedd Aquarium. 
+
+- The most active months are from June to September for both Members and Casual riders. We do see a drop off during the colder months from November to February. 
+
+
+### 2. Recommendations   
+
+#### Weekend Promotions for Casual Users:
+
+- Strategy: Offer promotional incentives such as discounts at local eateries, cafes, and stores for riders who sign up for memberships during weekends.
+
+- Execution: Promote these offers through social media, local hotspots, and in-app notifications starting Friday mornings. Collaborate with local businesses for joint promotions, providing mutual benefits and greater reach.
+
+#### Student Promotions:
+
+- Strategy: Introduce a student pass or referral program to highlight the value of our service and encourage future adoption of annual memberships.
+
+- Execution: Partner with universities and student organizations to spread the word. Utilize social media platforms for targeted advertising. Offer initial sign-up incentives, such as free rides during the first month, to encourage trial and adoption. Educate students on the benefits and savings of becoming annual members.
+
+#### Summer Marketing Strategy:
+
+- Strategy: Offer a discounted pass during the first summer month or the first week of each summer month to encourage casual users to become annual members.
+
+- Execution: Launch a summer marketing campaign across social media, local radio, and outdoor advertising (posters or billboards). Collaborate with local tourism boards to promote the service to visitors. Send targeted emails to previous casual users and unsubscribed members informing them of summer deals.
+
+#### Marketing at Popular Stations:
+
+- Strategy: Implement marketing strategies such as QR codes, on-site promotions, and attractive signage at the most popular stations to incentivize sign-ups.
+
+- Execution: Design eye-catching posters and banners for these stations. Schedule staff presence during peak times, especially weekends and summer months, to provide information on savings and benefits, as well as assistance. Track the effectiveness of these promotions by monitoring membership sign-ups at these locations, allowing for data-driven adjustments and improvements.
+
+#### Trip Duration Marketing:
+
+- Strategy: Offer special benefits for users who ride for a certain amount of time.
+
+- Execution: Promote these offers through the app, posters, and other types of media highlighting riding milestones. Partner with businesses to provide discounted benefits or free rides for users who surpass certain riding milestones. Create a rewards program for users who ride for long durations, use the service multiple times a day, or achieve specific milestones.
+
+
+
+
+
